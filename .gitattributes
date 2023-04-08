@@ -1,2 +1,390 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+#include <iostream>
+#include <cmath>
+#include <vector>
+
+using namespace std;
+
+class Coordinates{
+public:
+    int x,y;
+
+    Coordinates() {
+
+    }
+    Coordinates(int x, int y){
+        this->x = x;
+        this->y = y;
+    }
+    int getX(){
+        return x;
+    }
+    int getY(){
+        return y;
+    }
+    double distance(Coordinates p){
+        return sqrt(pow((x - p.x), 2) + pow((y - p.y), 2));
+    }
+    void translate(int dx, int dy){
+        x += dx;
+        y += dy;
+    }
+    void scale(int factor, bool sign){
+        if(sign == true){
+            x *= factor;
+            y *= factor;
+        }else{
+            x /= factor;
+            y /= factor;
+
+        }
+    }
+    string display(){
+        return "X = " + to_string(x) + ", Y = " + to_string(y);
+    }
+};
+
+class Shape{
+public:
+    Coordinates position;
+    int sides;
+
+    Shape() {
+
+    }
+    Shape(int noOfSides, Coordinates coord){
+        position = coord;
+        sides = noOfSides;
+    }
+    Coordinates getCoordinates() {
+        return position;
+    }
+    int getSides() {
+        return sides;
+    }
+    void setCoordinates(Coordinates newcoord){
+        position = newcoord;
+    }
+    virtual void translate(int dx, int dy){
+        position.translate(dx, dy);
+    };
+    virtual void scale(int factor, bool sign){
+        position.scale(factor, sign);
+    };
+    virtual double getArea(){
+        return 0;
+    };
+    virtual double getPerimeter(){
+        return 0;
+    };
+    virtual string display(){
+        return "";
+    };
+};
+class Rectangle: public Shape {
+public:
+    double width, len;
+    Rectangle(Coordinates position, double width, double len) {
+        this->position = position;
+        this->width = width;
+        this->len = len;
+    }
+    double getArea() override{
+        return width * len;
+    }
+    double getPerimeter() override {
+        return 2*width + 2*len;
+    }
+    void scale(int factor, bool sign) override {
+        if(sign==true){
+            width *= factor;
+            len *= factor;
+        }else{
+            width /= factor;
+            len /= factor;
+        }
+    }
+    string display() override {
+        return "Name=Rectangle\nX="+to_string(position.x)+", Y="+to_string(position.y)+", Width="+to_string(width)+", Length="+to_string(len)+
+        "\nArea="+to_string(getArea()) + ", Perimeter="+to_string(getPerimeter());
+    }
+};
+class Square: public Shape{
+public:
+    double side;
+    Square(Coordinates position, double side){
+        this->position = position;
+        this->side = side;
+    }
+    double getArea() override{
+        return side * side;
+    }
+    double getPerimeter() override{
+        return 4 * side;
+    }
+    void scale(int factor, bool sign){
+        if(sign == true){
+            side *= factor;
+        }else{
+            side /= factor;
+        }
+    }
+    string display() override{
+        return "Name=Square\nX="+to_string(position.x)+", Y="+to_string(position.y)+", Side="+to_string(side)+
+        "\nArea="+to_string(getArea()) + ", Perimeter="+to_string(getPerimeter());
+    }
+};
+class Circle:public Shape{
+public:
+    double radius;
+
+    Circle(Coordinates position, double radius){
+        this->position = position;
+        this->radius = radius;
+    }
+    double getArea() override{
+        return 3.14 * radius * radius;
+    }
+    double getPerimeter() override{
+        return 2 * 3.14 * radius; 
+    }
+    void scale(int factor, bool sign) override{
+        if(sign == true){
+            radius *= factor;
+        }else{
+            radius /= factor;
+        }
+    }
+    string display() override{
+        return "Name=Circle\nX="+to_string(position.x)+", Y="+to_string(position.y)+", Radius="+to_string(radius)+
+        "\nArea="+to_string(getArea()) + ", Perimeter="+to_string(getPerimeter());
+    }
+};
+class Triangle:public Shape{
+public:
+    Coordinates vertex1, vertex2, vertex3;
+    Triangle(Coordinates vertex1, Coordinates vertex2, Coordinates vertex3){
+        this->vertex1 = vertex1;
+        this->vertex2 = vertex2;
+        this->vertex3 = vertex3;
+    }
+    double getPerimeter() override{
+        double a = vertex1.distance(vertex2);
+        double b = vertex2.distance(vertex3);
+        double c = vertex3.distance(vertex1);
+        return a + b + c;
+    }
+    double getArea() override{
+        double a = vertex1.distance(vertex2);
+        double b = vertex2.distance(vertex3);
+        double c = vertex3.distance(vertex1);
+        double p = (a+b+c)/2;
+        return sqrt(p*(p-a)*(p-b)*(p-c));
+    }
+    void scale(int factor, bool sign) override{
+        vertex1.scale(factor, sign);
+        vertex2.scale(factor, sign);
+        vertex3.scale(factor, sign);
+    }
+    void translate(int dx, int dy) override {
+        vertex1.translate(dx, dy);
+        vertex2.translate(dx, dy);
+        vertex3.translate(dx, dy);
+    }
+    string display() override {
+        return "Name=Triangle \nX1="+to_string(vertex1.x) + ", Y1="+to_string(vertex1.y)+
+        ", X2="+to_string(vertex2.x) + ", Y2="+to_string(vertex2.x) + ", X3="+to_string(vertex3.x)+", Y3="+to_string(vertex3.y)+
+        "\nArea="+to_string(getArea()) + ", Perimeter="+to_string(getPerimeter());
+    }
+};
+class ShapeList{
+public:
+    vector<Shape*> listOfShapes;
+    void addShape(Shape* shape){
+        listOfShapes.push_back(shape);
+    }
+    void removeShape(int pos){
+        if(pos >= 0 && pos < listOfShapes.size())
+            listOfShapes.erase(listOfShapes.begin()+pos);
+        else cout << "There is no such figure!" << endl;
+    }
+    Shape* getShape(int pos){
+        if(pos >= 0 && pos < listOfShapes.size())
+            return listOfShapes[pos];
+        else return nullptr;
+    }
+    double area(int pos){
+        if(pos >= 0 && pos < listOfShapes.size())
+            return listOfShapes[pos]->getArea();
+        return 0;
+    }
+    double perimeter(int pos){
+        if(pos >= 0 && pos < listOfShapes.size())
+            return listOfShapes[pos]->getPerimeter();
+        return 0;
+    }
+    void translateShapes(int dx, int dy){
+        for(int i = 0; i < listOfShapes.size(); i ++){
+            listOfShapes[i]->translate(dx, dy);
+        }
+    }
+    void scale(int factor, bool sign){
+        for(int i = 0; i < listOfShapes.size(); i ++){
+            listOfShapes[i]->scale(factor, sign);
+        }
+    }
+    string display(){
+        string res = "";
+        for(int i = 0; i < listOfShapes.size(); i ++){
+            res += to_string(i+1)+".["+listOfShapes[i]->display()+"],\n";
+        }
+        return res;
+    }
+};
+class ShapeManagement{
+public:
+    ShapeList list;
+
+    void start() {
+        while(true) {
+            cout << "\n1.Add a shape" << endl;
+            cout << "2.Remove a shape by position" << endl;
+            cout << "3.Get information about a shape by position" << endl;
+            cout << "4.Area and perimeter of a shape by position" << endl;
+            cout << "5.Display information of all the shapes" << endl;
+            cout << "6.Translate all the shapes" << endl;
+            cout << "7.Scale all the shapes" << endl;
+            cout << "0.Quit program" << endl;
+            int choice;
+            cin >> choice;
+            if(choice == 1) {
+                Shape *shape;
+                cout << "Type of a shape:"<< endl;
+                cout << "1.Rectangle"<<endl;
+                cout << "2.Square"<<endl;
+                cout << "3.Circle"<<endl;
+                cout << "4.Triangle"<<endl;
+                int choice;
+                cin >> choice;
+                if(choice == 1){
+                    cout << "Position of a shape:";
+                    int x, y;
+                    cin >> x >> y;
+                    int width, len;
+                    cout << "Width: ";
+                    cin >> width;
+                    cout << "Length: ";
+                    cin >> len;
+                    shape = new Rectangle(Coordinates{x,y},width,len);
+                }else if(choice == 2){
+                    cout << "Position of a shape:";
+                    int x, y;
+                    cin >> x >> y;
+                    cout << "Side: "; 
+                    int side;
+                    cin >> side;
+                    shape = new Square(Coordinates{x,y},side);
+                }else if(choice == 3){
+                    cout << "Position of a shape:";
+                    int x, y;
+                    cin >> x >> y;
+                    cout << "Radius: " ;
+                    int radius;
+                    cin >> radius;
+                    shape = new Circle(Coordinates{x,y}, radius);
+                }else if(choice==4){
+                    int x1, y1, x2, y2, x3, y3;
+                    cout << "X1: ";
+                    cin >> x1;
+                    cout << "Y1: ";
+                    cin >> y1;
+                    cout << "X2: ";
+                    cin >> x2;
+                    cout << "Y2: ";
+                    cin >> y2;
+                    cout << "X3: ";
+                    cin >> x3;
+                    cout << "Y3: "; 
+                    cin >> y3;
+                    shape = new Triangle(Coordinates{x1,y1}, Coordinates{x2,y2}, Coordinates{x3,y3});
+                }
+                list.addShape(shape);
+            }
+            else if(choice == 2) {
+                cout << "Position of a shape:" << endl;
+                int pos;
+                cin >> pos;
+                pos --;
+                list.removeShape(pos);
+            }
+            else if(choice == 3) {
+                cout << "Position of a shape:" << endl;
+                int pos;
+                cin >> pos;
+                pos --;
+                Shape* shape = list.getShape(pos);
+                if (shape != nullptr)
+                    cout << shape->display() << endl; 
+                else cout << "There is no such figure!" << endl;
+            }
+            else if(choice == 4) {
+                cout << "Position of a shape:" << endl;
+                int pos;
+                cin >> pos;
+                pos --;
+                cout << "Area: " << list.area(pos) << endl;
+                cout << "Perimeter: "<< list.perimeter(pos) << endl;
+            }
+            else if(choice == 5) {
+                cout << list.display() << endl;
+            }
+            else if(choice == 6) {
+                cout << "dx: ";
+                int dx;
+                cin >> dx;
+                cout << "dy: ";
+                int dy;
+                cin >> dy;
+                list.translateShapes(dx, dy);
+            }
+            else if(choice == 7) {
+                cout << "Factor: ";
+                int factor;
+                cin >> factor;
+                cout << "Sign:" << endl;
+                cout << "1.True" << endl;
+                cout << "2.False" << endl;
+                bool sign;
+                cin >> choice;
+                if(choice == 1) {
+                    sign = true;
+                }else if(choice == 2){
+                    sign = false;
+                }
+                list.scale(factor, sign);
+            }
+            else if(choice == 0) {
+                break;
+            }
+        }
+    }
+};
+
+
+int main() {
+    // Shape* sh = new Rectangle{Coordinates{3,4}, 1, 2};
+    // cout << sh->getArea();
+
+    // Shape sh;
+    // sh.display();
+
+    // Shape* sh1;
+    // sh1->display();
+    ShapeManagement management;
+    management.start();
+    // Coordinates c{1, 2};
+    // Shape sh{3, c};
+    // cout << sh.position.display() << endl;
+    // sh.setCoordinates(Coordinates{3, 4});
+    // cout << sh.position.display() << endl;
+}
+
